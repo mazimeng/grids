@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>叠加自定义网格</title>
+    <style type="text/css">
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        body, button, input, select, textarea {
+            font: 12px/16px Verdana, Helvetica, Arial, sans-serif;
+        }
+
+        p {
+            width: 603px;
+            padding-top: 3px;
+            overflow: hidden;
+        }
+
+        .btn {
+            width: 100px;
+            height: 26px
+        }
+        #container {
+            min-width:603px;
+            min-height:767px;
+        }
+    </style>
+    <script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp"></script>
+    <script>
+        var map;
+
+        //按照MapType规范自定义一个类
+        function CoordMapType() {
+        }
+        //设置CoordMapType  样式属性
+        CoordMapType.prototype.tileSize = new qq.maps.Size(128, 128);
+        CoordMapType.prototype.maxZoom = 19;
+        //创建div样式元素
+        CoordMapType.prototype.getTile = function (coord, zoom, ownerDocument) {
+            var div = ownerDocument.createElement('div');
+            // div.innerHTML = coord;
+            div.style.width = (this.tileSize.width  ) + 'px';
+            div.style.height = (this.tileSize.height ) + 'px';
+            div.style.fontSize = '10';
+            div.style.borderStyle = 'solid';
+            div.style.borderWidth = '1px';
+            div.style.borderColor = '#AAAAAA';
+
+            console.log('getting tiles');
+            return div;
+        };
+
+        CoordMapType.prototype.name = '网格';
+        CoordMapType.prototype.alt = '显示自定义网格';
+        var coordinateMapType = new CoordMapType();
+
+        function init() {
+            map = new qq.maps.Map(document.getElementById("container"), {
+                // 地图的中心地理坐标。
+                center: new qq.maps.LatLng(39.916527, 116.397128),
+                zoom: 14
+            });
+
+            //插入地图
+            map.overlayMapTypes.insertAt(0, coordinateMapType);
+
+            qq.maps.event.addListener(map,'zoom_changed',function() {
+                console.log('zoom_changed');
+                var zoomLevel = map.getZoom();
+                // map.setCenter(myLatLng);
+                // infoWin.setContent('zoomLevel: ' + zoomLevel);
+                console.log('zoomed');
+                coordinateMapType.tileSize = new qq.maps.Size(128 * zoomLevel /14, 128 * zoomLevel /14);
+                console.log(coordinateMapType.tileSize);
+                console.log(map.getBounds());
+            });
+            qq.maps.event.addListener(map,'tilesloaded',function() {
+                console.log('tilesloaded');
+            });
+            qq.maps.event.addListener(map,'bounds_changed',function() {
+                console.log('bounds_changed ');
+                var bound = map.getBounds();
+                var distY = bound.lat.maxY - bound.lat.minY;
+                var distX = bound.lng.maxX - bound.lng.minX;
+                console.log(map.getBounds(), distX, distY);
+
+                // 0.001 lat = 1 px
+
+            });
+        }
+    </script>
+</head>
+<body onload="init();">
+<div id="container"></div>
+</body>
+</html>
